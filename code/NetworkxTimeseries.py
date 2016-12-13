@@ -1,4 +1,4 @@
-
+﻿
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -13,7 +13,11 @@ class NetTs:
     # self.ts is a timeseries list
 
     def __str__(self):
-        return '<NetTs:type=%s,numnodes=%d,numedges=%d>' % (self.type,len(self.nodes) if self.nodes is not None else -1,len(self.edges) if self.edges is not None else -1)
+        return '<NetTs:type=%s,numnodes=%d,numedges=%d>' % (
+            self.type,
+            len(self.nodes) if self.nodes is not None else -1,
+            len(self.edges) if self.edges is not None else -1
+            )
 
     def __init__(self, ts, nodes=None, edges=None):
         # ts is a timeseries list
@@ -78,12 +82,12 @@ class NetTs:
         at time t. Name specified by attrName and data given 
         in edata, a dictionary of edge(tuple)->value pairs.
         '''
-        for key,val in edata:
+        for i,j in edata:
             try:
-                self.nts[t].edge[key[0]][key[1]]
-            else:
-                self.nts[t].add_edge(key)
-            self.nts[t].edge[key[0]][key[1]][attrName] = val
+                self.nts[t].edge[i][j]
+            except:
+                self.nts[t].add_edge(i,j)
+            self.nts[t].edge[i][j][attrName] = edata[(i,j)]
         return
 
     ##### Modify the Graphs and Return NetTs #####
@@ -99,18 +103,19 @@ class NetTs:
         return outNet
 
     ##### Measure Properties of Graphs Over Time #####
-    def measGraph(self, measFunc, addtnlArgs):
+    def measGraph(self, measFunc, addtnlArgs=list()):
         ''' Returns a dataframe of measurements of the 
         entire graph at each point in time. measFunc should
         return a dictionary with keys as columns that are
         expected to be returned in the output dataframe.
         The index will be the timeseries.
         '''
+
         df = pd.DataFrame()
         for i in range(self.N):
             result = measFunc(self.nts[i], *addtnlArgs)
             tdf = pd.DataFrame([result,],index=[self.ts[i],])
-            df.append(tdf)
+            df = df.append(tdf)
 
         return df
 
