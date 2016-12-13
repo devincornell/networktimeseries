@@ -2,6 +2,9 @@
 import networkx as nx
 import numpy as np
 import pandas as pd
+import multiprocessing
+
+import sys
 from itertools import *
 
 class NetTs:
@@ -20,9 +23,9 @@ class NetTs:
             )
 
     def __init__(self, ts, nodes=None, edges=None):
-        # ts is a timeseries list
-        # nodes is a list of node names
-        # edges is a list of edges
+        ts = list(ts) # ts is a timeseries list
+        if nodes is not None: nodes = list(nodes) # nodes is a list of node names
+        if edges is not None: edges = list(edges) # edges is a list of edges
 
         # set timeseries type
         if nodes is None:
@@ -35,7 +38,8 @@ class NetTs:
         elif nodes is not None and edges is not None:
             self.type = 'static_structure'
         else:
-            print('network type not recognized.')
+            print('network type not recognized in NetTs init.')
+            exit()
 
         # make networks
         self.ts = ts
@@ -50,6 +54,8 @@ class NetTs:
             for i in range(self.N):
                 for n in nodes:
                     self.nts[i].add_node(n)
+        else:
+            self.nodes = list()
 
         # set edges
         self.edges = edges
@@ -57,6 +63,8 @@ class NetTs:
             for i in range(self.N):
                 for e in edges:
                     self.nts[i].add_edge(e)
+        else:
+            self.edges = list()
 
     ##### Set Graph, Node, and Edge Attributes #####
     def setGraphAttr(self, t, attrName, gdata):
@@ -82,11 +90,12 @@ class NetTs:
         at time t. Name specified by attrName and data given 
         in edata, a dictionary of edge(tuple)->value pairs.
         '''
-        for i,j in edata:
+        for i,j in edata.keys():
             try:
                 self.nts[t].edge[i][j]
             except:
                 self.nts[t].add_edge(i,j)
+                self.edges.append((i,j))
             self.nts[t].edge[i][j][attrName] = edata[(i,j)]
         return
 
@@ -110,6 +119,11 @@ class NetTs:
         expected to be returned in the output dataframe.
         The index will be the timeseries.
         '''
+        try: # check out measFunc
+            dict(measFunc(self.nts[0], *addtnlArgs))
+        except TypeError:
+            print('Error in measGraph(): measFunc should return a dict')
+            exit()
 
         df = pd.DataFrame()
         for i in range(self.N):
@@ -119,24 +133,82 @@ class NetTs:
 
         return df
 
-    def measNodes(self, measFunc, addtnlArgs):
-        ''' Returns a multiindex dataframe of measurements 
-        for all nodes at each point in time. measFunc should
-        expect a node name and a graph object and return a 
-        dictionary with keys as columns that are
-        expected as columns in the output dataframe.
-        The index will be the timeseries, columns will be 
-        multi-indexed: first by node name then by attribute.
-        '''
-        attr = measFunc(self.nts[0], *addtnlArgs).keys()
-        mi = pd.MultiIndex.from_tuples(list(product(self.nodes,attr)))
-        df = pd.DataFrame(index=self.ts,columns=mi)
+    def measNodes(self, measFunc, addtnlArgs=list(), pernode=True, parallel=False):
+        ''' Returns a multiindex dataframe of measurements for all nodes at each 
+        point in time.
+        
+        If pernode: measFunc should expect a node name and a graph
+        object and return a dictionary with keys as columns as attribute names.
+        
+        If not pernode: measFunc should expect a graph object and return a 
+        dictionary with (node,attr) as keys.
 
-        for i in range(self.N):
-            for n in self.nodes:
-                result = measFunc(self.nts[i], *addtnlArgs)
-                df.loc[(i,),(n,)] = pd.DataFrame([result,],index=[self.ts[i],])
+        Output: The index will be a timeseries, columns will be multi-indexed: 
+        first by node name then by attribute.
+        '''
+        if pernode:
+            try: # check out measFunc
+                dict(measFunc(self.nodes[0],self.nts[0], *addtnlArgs))
+            except TypeError:
+                print('Error in measNodes(): measFunc should return a dict')
+                exit()
+        else:
+            try: # check out measFunc
+                dict(measFunc(self.nodes[0],self.nts[0], *addtnlArgs)).keys()
+            except:
+                print('Error in measNodes(): measFunc should return a dict', sys.stderr[0])
+                exit()
+
+        attr = measFunc(self.nodes[0],self.nts[0], *addtnlArgs).keys()
+        mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+        df = pd.DataFrame(index=self.ts,columns=mi)
+        
+
+        if pernode: # requires a simpler measFunc
+            tdata = [(self.nts[t],n,t,measFunc,addtnlArgs) for n in self.nodes for t in self.ts]
+            if not parallel:
+                meas = list(map(self.thread_measNodes_pernode, tdata))
+            else:
+                with multiprocessing.Pool(processes=4) as p:
+                    meas = p.map(self.thread_measNodes_pernode, tdata)
+            for n,t,mdf in meas:
+                df.loc[[t,],[n,]] = mdf
+
+        else: # requires a more complicated measFunc
+            if not parallel:
+                meas = map(self.thread_measNodes, [(self.nts[t],t,measFunc,addtnlArgs) for t in self.ts])
+            else:
+                with multiprocessing.Pool(processes=4) as p:
+                    meas = p.map(self.thread_measNodes, [(self.nts[t],n,t,measFunc,addtnlArgs) for t in self.ts])
+            for t,mdf in meas:
+                df.loc[t] = mdf
 
         return df
 
+    def thread_measNodes_pernode(self,dat):
+        ''' This is a thread function that will call measFunc on each
+        network in the timeseries for each node. measFunc is responsible 
+        for returning a dictionary with attribute keys.
+        '''
 
+        G,n,t,measFunc,addtnlArgs = dat
+
+        meas = measFunc(n,G, *addtnlArgs)
+        result = {(n,k):v for k,v in meas.items()}
+        mi = pd.MultiIndex.from_tuples(result.keys())
+        
+        return n,t,pd.DataFrame([result,],index=[t,],columns=mi)
+
+    def thread_measNodes(self,dat):
+        ''' This is a thread function that will call measFunc on each
+        network in the timeseries. measFunc is responsible for returning
+        a dictionary with (node,attr) keys.
+        '''
+
+        G,t,measFunc,addtnlArgs = dat
+
+        meas = measFunc(G, *addtnlArgs)
+        result = {(n,k):v for k,v in meas.items()}
+        mi = pd.MultiIndex.from_tuples(result.keys())
+        
+        return n,t,pd.DataFrame([result,],index=[t,],columns=mi)
