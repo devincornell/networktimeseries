@@ -34,7 +34,8 @@ def edge_measFunc(G):
 def ut_measure():
 	nodes = ['a','b','c','d','e']
 	#nodes = list(range(50))
-	ts = list(map(lambda x: x*x, range(2,6,2)))
+	#ts = list(map(lambda x: x*x, range(2,6,2)))
+	ts = [50000,]
 	tdf = pd.DataFrame(index=ts, columns=['graph','nodes', 'edges'])
 
 	for T in ts:
@@ -63,7 +64,7 @@ def ut_measure():
 		t0 = time.time()
 		df = Gt.measure(node_measFunc, meas_obj='nodes', parallel=True)
 		tf = time.time()
-		tdf.loc[T,'node'] = tf-t0
+		tdf.loc[T,'nodes'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
 		print('Measuring Edge Properties In Parallel')
