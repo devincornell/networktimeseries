@@ -35,7 +35,7 @@ def ut_measure():
 	nodes = ['a','b','c','d','e']
 	#nodes = list(range(50))
 	#ts = list(map(lambda x: x*x, range(2,6,2)))
-	ts = [50000,]
+	ts = [10,]
 	tdf = pd.DataFrame(index=ts, columns=['graph','nodes', 'edges'])
 
 	for T in ts:
@@ -73,6 +73,9 @@ def ut_measure():
 		tf = time.time()
 		tdf.loc[T,'edges'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
+
+		print('Saving file.')
+		Gt.save_xgmml('test.xgmml')
 
 		print('End of Run\r\n')
 

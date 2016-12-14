@@ -8,7 +8,7 @@ def meas_graph_attr(G):
 
 def meas_node_attr(G):
 	meas = dict()
-	nx.get_node_attributes(G,G.nodes()[0])
+	attr = nx.get_node_attributes(G,G.nodes()[0])
 	for a,val in attr.items():
 		attr = nx.get_node_attributes(G,a)
 		meas.update({(n,a):val for n in G.nodes()})
