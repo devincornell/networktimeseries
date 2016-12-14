@@ -59,6 +59,7 @@ def ut_measure():
 		tf = time.time()
 		tdf.loc[T,'graph'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
+		print(df)
 
 		print('Measuring Node Properties In Parallel')
 		t0 = time.time()
@@ -66,6 +67,7 @@ def ut_measure():
 		tf = time.time()
 		tdf.loc[T,'nodes'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
+		print(df)
 
 		print('Measuring Edge Properties In Parallel')
 		t0 = time.time()
@@ -73,6 +75,7 @@ def ut_measure():
 		tf = time.time()
 		tdf.loc[T,'edges'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
+		print(df)
 
 		print('End of Run\r\n')
 

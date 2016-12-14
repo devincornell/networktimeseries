@@ -46,7 +46,9 @@ class NetTS:
 		return
 
 	def save_xgmml(self, filename):
-		raise
+		self.update()
+		ndf = self.getNodeAttr()
+		edf = self.getEdgeAttr()
 		with open(filename,'w') as f:
 			xgmml.build_xgmml_file(f,ndf,edf)
 
@@ -94,10 +96,8 @@ class NetTS:
 			self.edges = list()
 
 	def update(self):
-		''' This function will ensure consistency across time periods
-		and also keep track of dynamic vs static properties.'''
-		# assign all node/edge properties to be dynamic unless they are static
-		# get unique node set
+		''' This function will add _tag attributes to every node/edge and also
+		keep track of all nodes/edges that appear at all times.'''
 		
 		# update self.nodes, self.edges to contain all possible unique edges
 		nodeset = set()
@@ -187,10 +187,10 @@ class NetTS:
 		tdata = [(self[t],t,measFunc,addtnlArgs,meas_obj,cols) for t in self.ts]
 
 		if not parallel:
-			meas = map(self.thread_measure, tdata)
+			meas = map(self.thread_time_measure, tdata)
 		else:
 			with multiprocessing.Pool(processes=4) as p:
-				meas = p.map(self.thread_measure, tdata)
+				meas = p.map(self.thread_time_measure, tdata)
 		for t,mdf in meas:
 			df.loc[[t],:] = mdf
 
@@ -206,21 +206,17 @@ class NetTS:
 		
 		return t,pd.DataFrame([meas,],index=[t,],columns=cols)
 
-	def getStatNodeAttr(self):
-		self.update()
-		return self.static_node_attr
-	
-	def getStatEdgeAttr(self):
-		self.update()
-		return self.static_edge_attr
+	def getNodeAttr(self,t=None,parallel=False):
+		''' Measure all node attributes across time.
+		'''
+		ndf = self.time_measure(meas_node_attr, meas_obj='nodes', parallel=parallel)
+		return ndf
 
-	def getDynNodeAttr(self):
-		ndf = self.time_measure(xgmml.meas_node_attr, meas_obj='nodes', parallel=False)
-		pass
-
-	def getDynEdgeAttr(self):
-		edf = self.time_measure(xgmml.meas_edge_attr, meas_obj='edges', parallel=False)
-		pass
+	def getEdgeAttr(self,t=None,parallel=False):
+		''' Measure all edge attributes across time.
+		'''
+		edf = self.time_measure(meas_edge_attr, meas_obj='edges', parallel=parallel)
+		return edf
 
 
 ##### Standalone Measurement Functions #####
@@ -234,8 +230,6 @@ def meas_node_attr(G):
 	for a,val in attr:
 		attr = nx.get_node_attributes(G,a)
 		meas.update({(n,a):val for n in G.nodes()})
-	if len(meas) == 0:
-		meas.update({(n,'_tag'):str(n) for n in G.nodes()})
 
 	return meas
 
@@ -246,7 +240,5 @@ def meas_edge_attr(G):
 	for a,val in attr.items():
 		attr = nx.get_edge_attributes(G,a)
 		meas.update({(e[0],e[1],a):val for e in G.edges()})
-	if len(attr) == 0:
-		meas.update({(e[0],e[1],_tag):str(e) for e in edges()})
 
 	return meas

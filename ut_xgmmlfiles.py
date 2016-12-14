@@ -13,8 +13,6 @@ def ut_xgmmlfiles():
 	#nodes = list(range(50))
 	#ts = list(map(lambda x: x*x, range(2,6,2)))
 	ts = [10,]
-	tdf = pd.DataFrame(index=ts, columns=['graph','nodes', 'edges'])
-
 	for T in ts:
 
 		print('Running for T = %d.' % T)
@@ -33,9 +31,6 @@ def ut_xgmmlfiles():
 		Gt.save_xgmml('test.xgmml')
 
 		print('End of Run\r\n')
-
-
-	print(tdf)
 
 
 if __name__ == '__main__':
