@@ -26,8 +26,8 @@ def node_measFunc(G):
 if __name__ == "__main__":
 	#nodes = ['a','b','c','d','e']
 	nodes = list(range(50))
-	ts = list(map(lambda x: x*x, range(10,1000, 100)))
-	tdf = pd.DataFrame(index=ts, columns=['Graph','nodewise','nodes'])
+	ts = list(map(lambda x: x*x, range(2,10,2)))
+	tdf = pd.DataFrame(index=ts, columns=['serial','parallel'])
 
 	for T in ts:
 
@@ -54,19 +54,19 @@ if __name__ == "__main__":
 		t0 = time.time()
 		ddf = Gt.measNodes(node_measFunc)
 		tf = time.time()
-		tdf.loc[T,'nodes'] = tf-t0
+		tdf.loc[T,'serial'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
 		print('Measuring Node Properties In Paralell')
 		t0 = time.time()
 		ddf = Gt.measNodes(node_measFunc, parallel=True)
 		tf = time.time()
-		tdf.loc[T,'nodes'] = tf-t0
+		tdf.loc[T,'parallel'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
 		print('EORun\r\n')
 
-	print(ddf)
+	print(tdf)
 
 	plt.plot(df.index,df['meanconstraint'])
 	#plt.show()
