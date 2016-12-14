@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
+import pickle
 import sys
 from itertools import *
 
@@ -25,6 +26,18 @@ class NetTs:
 	def __getitem__(self,key):
 		i = self.ts.index(key)
 		return self.nts[i]
+
+	@staticmethod
+	def open_nts(ntsfile):
+		data = None
+		with open(ntsfile,'rb') as f:
+			data = pickle.load(f)
+		return data
+
+	def save_nts(self,ntsfile):
+		with open(ntsfile,mode='wb') as f:
+			data = pickle.dump(self,f)
+		return
 
 	def __init__(self, ts, nodes=None, edges=None):
 		ts = list(ts) # ts is a timeseries list
@@ -131,7 +144,7 @@ class NetTs:
 
 		df = pd.DataFrame()
 		for t in self.ts:
-			result = measFunc(self[i], *addtnlArgs)
+			result = measFunc(self[t], *addtnlArgs)
 			tdf = pd.DataFrame([result,],index=[self.ts[i],])
 			df = df.append(tdf)
 
@@ -147,8 +160,6 @@ class NetTs:
 				meas = p.map(self.thread_measNodes, tdata)
 		for t,mdf in meas:
 			df.loc[[t],:] = mdf
-
-
 
 		return df
 

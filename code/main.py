@@ -57,14 +57,15 @@ if __name__ == "__main__":
 		tdf.loc[T,'serial'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
-		print('Measuring Node Properties In Paralell')
+		print('Measuring Node Properties In Parallel')
 		t0 = time.time()
 		ddf = Gt.measNodes(node_measFunc, parallel=True)
 		tf = time.time()
 		tdf.loc[T,'parallel'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
-		print('EORun\r\n')
+		Gt.save_nts('T_%d.nts' % (T,))
+
 
 	print(tdf)
 
