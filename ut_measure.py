@@ -74,9 +74,6 @@ def ut_measure():
 		tdf.loc[T,'edges'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
 
-		print('Saving file.')
-		Gt.save_xgmml('test.xgmml')
-
 		print('End of Run\r\n')
 
 
