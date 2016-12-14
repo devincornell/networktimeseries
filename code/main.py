@@ -43,19 +43,28 @@ if __name__ == "__main__":
 				for j in range(i,len(nodes)):
 					Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
 
-		print('Measuring Graph Properties')
-		t0 = time.time()
-		df = Gt.measGraph(graph_measFunc)
-		tf = time.time()
-		tdf.loc[T,'Graph'] = tf-t0
-		print('took %f seconds.' % (tf-t0,))
+		#print('Measuring Graph Properties')
+		#t0 = time.time()
+		#df = Gt.measGraph(graph_measFunc)
+		#tf = time.time()
+		#tdf.loc[T,'Graph'] = tf-t0
+		#print('took %f seconds.' % (tf-t0,))
 
-		print('Measuring Node Properties At Once')
+		print('Measuring Node Properties Sequentially')
 		t0 = time.time()
 		ddf = Gt.measNodes(node_measFunc)
 		tf = time.time()
 		tdf.loc[T,'nodes'] = tf-t0
 		print('took %f seconds.' % (tf-t0,))
+
+		print('Measuring Node Properties In Paralell')
+		t0 = time.time()
+		ddf = Gt.measNodes(node_measFunc, parallel=True)
+		tf = time.time()
+		tdf.loc[T,'nodes'] = tf-t0
+		print('took %f seconds.' % (tf-t0,))
+
+		print('EORun\r\n')
 
 	print(ddf)
 
