@@ -48,7 +48,6 @@ if __name__ == "__main__":
 	print('Measuring Node Properties At Once')
 	ddf = Gt.measNodes(nodes_measFunc, pernode=False)
 
-
 	print(ddf)
 
 	#plt.plot(df.index,df['meanconstraint'])

@@ -167,13 +167,11 @@ class NetTs:
 			try: [list(m) for m in trymeas];
 			except TypeError: print('Error in measNodes(): measFunc keys should follow (node,attr).'); exit()
 
-		attr = trymeas.keys()
-
 		if pernode: # requires a simpler measFunc
-			mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+			mi = pd.MultiIndex.from_product([self.nodes,trymeas.keys()],names=['node','attr'])
 			df = pd.DataFrame(index=self.ts,columns=mi)
-
 			tdata = [(self.nts[t],n,t,measFunc,addtnlArgs) for n in self.nodes for t in self.ts]
+
 			if not parallel:
 				meas = list(map(self.thread_measNodes_pernode, tdata))
 			else:
@@ -183,7 +181,11 @@ class NetTs:
 				df.loc[[t,],[n,]] = mdf
 
 		else: # requires a more complicated measFunc
+			attr = list(set([x[1] for x in trymeas.keys()]))
+			mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+			df = pd.DataFrame(index=self.ts,columns=mi)
 			tdata = [(self.nts[t],t,measFunc,addtnlArgs) for t in self.ts]
+
 			if not parallel:
 				meas = map(self.thread_measNodes, tdata)
 			else:
