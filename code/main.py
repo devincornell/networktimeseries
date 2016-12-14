@@ -35,7 +35,7 @@ if __name__ == "__main__":
 		ts = list(range(T))
 		N = len(ts)
 
-		Gt = nxt.NetTs(ts,nodes=nodes)
+		Gt = nxt.NetTS(ts,nodes=nodes)
 	
 		print('Adding Complete Edges For All t')
 		for t in ts:

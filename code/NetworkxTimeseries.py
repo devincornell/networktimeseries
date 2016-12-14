@@ -8,7 +8,7 @@ import pickle
 import sys
 from itertools import *
 
-class NetTs:
+class NetTS:
 	''' Network Time Series '''
 	
 	### member vars ###
