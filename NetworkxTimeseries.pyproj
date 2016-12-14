@@ -5,8 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>16a96522-b4dd-4ea5-98ca-06a6a353ebb4</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>ut_measure.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -28,9 +27,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="NetTS.py" />
+    <Compile Include="ut_measure.py" />
     <Compile Include="ut_measGraph.py" />
+    <Compile Include="ut_measEdges.py" />
     <Compile Include="ut_measNodes.py" />
     <Compile Include="ut_ntsfiles.py" />
+    <Compile Include="xgmml.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
