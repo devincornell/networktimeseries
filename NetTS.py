@@ -45,6 +45,15 @@ class NetTS:
 			data = pickle.dump(self,f)
 		return
 
+	def save_xgmml(self, filename):
+		gdf = self.measure(xgmml.meas_graph_attr, meas_obj='graph', parallel=True)
+		ndf = self.measure(xgmml.meas_node_attr, meas_obj='nodes', parallel=True)
+		edf = self.measure(xgmml.meas_edge_attr, meas_obj='edges', parallel=True)
+		with open(filename) as f:
+			xgmml.build_xgmml_file(f,gdf,ndf,edf)
+
+		return
+
 	def __init__(self, ts, nodes=None, edges=None):
 		ts = list(ts) # ts is a timeseries list
 		if nodes is not None: nodes = list(nodes) # nodes is a list of node names
