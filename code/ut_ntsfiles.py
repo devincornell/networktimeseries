@@ -1,4 +1,4 @@
-﻿
+
 import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,16 +6,8 @@ import matplotlib.pyplot as plt
 import NetworkxTimeseries as nxt
 import random
 import statistics
-import time
 
-def node_measFunc(G):
-	meas = dict()
-	bc = nx.betweenness_centrality(G,weight='weight')
-	for n in G.nodes():
-		meas[n,'sp-betw'] = bc[n]
-		meas[n,'mean_oth'] = statistics.mean(bc.values())
-	
-	return meas
+import time
 
 if __name__ == "__main__":
 	#nodes = ['a','b','c','d','e']
@@ -37,24 +29,12 @@ if __name__ == "__main__":
 				for j in range(i,len(nodes)):
 					Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
 
-		print('Measuring Node Properties Sequentially')
-		t0 = time.time()
-		ddf = Gt.measNodes(node_measFunc)
-		tf = time.time()
-		tdf.loc[T,'serial'] = tf-t0
-		print('took %f seconds.' % (tf-t0,))
+		fname = 'T_%d.nts' % (T,)
+		print('Saving nts file:', Gt)
+		Gt.save_nts(fname)
 
-		print('Measuring Node Properties In Parallel')
-		t0 = time.time()
-		ddf = Gt.measNodes(node_measFunc, parallel=True)
-		tf = time.time()
-		tdf.loc[T,'parallel'] = tf-t0
-		print('took %f seconds.' % (tf-t0,))
-
-		#Gt.save_nts('T_%d.nts' % (T,))
-
-
-	print(tdf)
+		nts = nxt.NetTS.open_nts(fname)
+		print('Opened nts file:', nts)
 
 	#plt.plot(df.index,df['meanconstraint'])
 	#plt.show()

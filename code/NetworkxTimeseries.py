@@ -130,40 +130,34 @@ class NetTS:
 
 	##### Measure Properties of Graphs Over Time #####
 	def measGraph(self, measFunc, addtnlArgs=list(), parallel=False):
-		''' Returns a dataframe of measurements of the 
-		entire graph at each point in time. measFunc should
-		return a dictionary with keys as columns that are
-		expected to be returned in the output dataframe.
-		The index will be the timeseries.
+		''' Returns a dataframe of measurements of the entire graph at each point in 
+		time. measFunc should return a dictionary with keys as columns that are
+		expected to be returned in the output dataframe. The index will be the 
+		timeseries.
 		'''
+		try: trymeas = measFunc(self.nts[0], *addtnlArgs)
+		except: print('Error in measGraph(): measFunc threw an error:', sys.stderr[0])
+
 		try: # check out measFunc
-			dict(measFunc(self.nts[0], *addtnlArgs))
+			dict(trymeas)
 		except TypeError:
 			print('Error in measGraph(): measFunc should return a dict')
 			exit()
 
-		df = pd.DataFrame()
-		for t in self.ts:
-			result = measFunc(self[t], *addtnlArgs)
-			tdf = pd.DataFrame([result,],index=[self.ts[i],])
-			df = df.append(tdf)
-
-		attr = list(set([x[1] for x in trymeas.keys()]))
-		mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
-		df = pd.DataFrame(index=self.ts,columns=mi)
+		df = pd.DataFrame(index=self.ts,columns=trymeas.keys())
 		tdata = [(self[t],t,measFunc,addtnlArgs) for t in self.ts]
 
 		if not parallel:
 			meas = map(self.thread_measGraph, tdata)
 		else:
 			with multiprocessing.Pool(processes=4) as p:
-				meas = p.map(self.thread_measNodes, tdata)
+				meas = p.map(self.thread_measGraph, tdata)
 		for t,mdf in meas:
 			df.loc[[t],:] = mdf
 
 		return df
 
-	def thread_measGraph(self,dat):
+	def thread_measGraph(self, dat):
 		G,t,measFunc,addtnlArgs = dat
 		meas = measFunc(G, *addtnlArgs)
 		return t,pd.DataFrame([meas,],index=[t,],columns=meas.keys())
@@ -171,16 +165,9 @@ class NetTS:
 
 	def measNodes(self, measFunc, addtnlArgs=list(), parallel=False):
 		''' Returns a multiindex dataframe of measurements for all nodes at each 
-		point in time.
-		
-		If pernode: measFunc should expect a node name and a graph
-		object and return a dictionary with keys as columns as attribute names.
-		
-		If not pernode: measFunc should expect a graph object and return a 
-		dictionary with (node,attr) as keys.
-
-		Output: The index will be a timeseries, columns will be multi-indexed: 
-		first by node name then by attribute.
+		point in time. measFunc should expect a graph object and return a 
+		dictionary with (node,attr) as keys. Output: The index will be a timeseries, 
+		columns will be multi-indexed - first by node name then by attribute.
 		'''
 
 		try: trymeas = measFunc(self.nts[0], *addtnlArgs)
@@ -205,8 +192,7 @@ class NetTS:
 
 		return df
 
-
-	def thread_measNodes(self,dat):
+	def thread_measNodes(self, dat):
 		''' This is a thread function that will call measFunc on each
 		network in the timeseries. measFunc is responsible for returning
 		a dictionary with (node,attr) keys.
