@@ -133,7 +133,7 @@ class NetTs:
 
 		return df
 
-	def measNodes(self, measFunc, addtnlArgs=list(), pernode=True, parallel=False):
+	def measNodes(self, measFunc, addtnlArgs=list(), parallel=False):
 		''' Returns a multiindex dataframe of measurements for all nodes at each 
 		point in time.
 		
@@ -146,69 +146,29 @@ class NetTs:
 		Output: The index will be a timeseries, columns will be multi-indexed: 
 		first by node name then by attribute.
 		'''
-		
-		if pernode:
-			try: trymeas = measFunc(self.nodes[0],self.nts[0], *addtnlArgs)
-			except: print('measFunc threw an error:\r\n', sys.stderr[0]); exit()
 
-			try:
-				dict(trymeas)
-			except TypeError:
-				print('Error in measNodes(): measFunc should return a dict')
-				exit()
+		try: trymeas = measFunc(self.nts[0], *addtnlArgs)
+		except: print('measFunc threw an error:\r\n', sys.stderr[0]); exit()
+		try: dict(trymeas)
+		except TypeError: print('Error in measNodes(): measFunc should return a dict'); exit()
+		try: [list(m) for m in trymeas];
+		except TypeError: print('Error in measNodes(): measFunc keys should follow (node,attr).'); exit()
+
+		attr = list(set([x[1] for x in trymeas.keys()]))
+		mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+		df = pd.DataFrame(index=self.ts,columns=mi)
+		tdata = [(self.nts[t],t,measFunc,addtnlArgs) for t in self.ts]
+
+		if not parallel:
+			meas = map(self.thread_measNodes, tdata)
 		else:
-
-			try: trymeas = measFunc(self.nts[0], *addtnlArgs)
-			except: print('measFunc threw an error:\r\n', sys.stderr[0]); exit()
-
-			try: dict(trymeas)
-			except TypeError: print('Error in measNodes(): measFunc should return a dict'); exit()
-			
-			try: [list(m) for m in trymeas];
-			except TypeError: print('Error in measNodes(): measFunc keys should follow (node,attr).'); exit()
-
-		if pernode: # requires a simpler measFunc
-			mi = pd.MultiIndex.from_product([self.nodes,trymeas.keys()],names=['node','attr'])
-			df = pd.DataFrame(index=self.ts,columns=mi)
-			tdata = [(self.nts[t],n,t,measFunc,addtnlArgs) for n in self.nodes for t in self.ts]
-
-			if not parallel:
-				meas = list(map(self.thread_measNodes_pernode, tdata))
-			else:
-				with multiprocessing.Pool(processes=4) as p:
-					meas = p.map(self.thread_measNodes_pernode, tdata)
-			for n,t,mdf in meas:
-				df.loc[[t,],[n,]] = mdf
-
-		else: # requires a more complicated measFunc
-			attr = list(set([x[1] for x in trymeas.keys()]))
-			mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
-			df = pd.DataFrame(index=self.ts,columns=mi)
-			tdata = [(self.nts[t],t,measFunc,addtnlArgs) for t in self.ts]
-
-			if not parallel:
-				meas = map(self.thread_measNodes, tdata)
-			else:
-				with multiprocessing.Pool(processes=4) as p:
-					meas = p.map(self.thread_measNodes, tdata)
-			for t,mdf in meas:
-				df.loc[[t],:] = mdf
+			with multiprocessing.Pool(processes=4) as p:
+				meas = p.map(self.thread_measNodes, tdata)
+		for t,mdf in meas:
+			df.loc[[t],:] = mdf
 
 		return df
 
-	def thread_measNodes_pernode(self,dat):
-		''' This is a thread function that will call measFunc on each
-		network in the timeseries for each node. measFunc is responsible 
-		for returning a dictionary with attribute keys.
-		'''
-
-		G,n,t,measFunc,addtnlArgs = dat
-
-		meas = measFunc(n,G, *addtnlArgs)
-		result = {(n,k):v for k,v in meas.items()}
-		mi = pd.MultiIndex.from_tuples(result.keys())
-		
-		return n,t,pd.DataFrame([result,],index=[t,],columns=mi)
 
 	def thread_measNodes(self,dat):
 		''' This is a thread function that will call measFunc on each
