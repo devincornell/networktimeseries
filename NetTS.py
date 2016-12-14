@@ -93,16 +93,6 @@ class NetTS:
 		else:
 			self.edges = list()
 
-	def setStaticAttr(self, attr_dict, type='node'):
-		''' Set a set of static attributes to either nodes or edges.'''
-		for o,odata in attr_dict.items():
-			for attr,val in odata.items():
-				if type == 'node':
-					self.static_node_attr[o][attr] = val
-				elif type == 'edge':
-					self.static_edge_attr[o][attr] = val
-		return
-
 	def update(self):
 		''' This function will ensure consistency across time periods
 		and also keep track of dynamic vs static properties.'''
@@ -118,20 +108,10 @@ class NetTS:
 		self.nodes = list(nodeset)
 		self.edges = list(edgeset)
 
-		# ensure every node/edge has a static _tag attribute
-		self.static_node_attr = {n:{'_tag':str(n)} for n in self.nodes}
-		self.static_edge_attr = {e:{'_tag':str(e)} for e in self.edges}
-
-		# add nodes/edges to every graph as needed
-		if type == 'static_nodes' or type == 'static_structure':
-			for t in self.ts:
-				for n in self.nodes:
-					if n not in self[t].nodes:
-						self[t].add_node(n,attr_dict={'_tag':str(n)})
-				if type == 'static_structure':
-					for e in self.edges:
-						if e not in self[t].edges():
-							self[t].add_edge(e,attr_dict={'_tag':str(e)})
+		# ensure every node/edge has a _tag attribute
+		for t in self.ts:
+			nx.set_node_attributes(self[t],'_tag',{n:str(n) for n in self[t].nodes()})
+			nx.set_edge_attributes(self[t],'_tag',{e:str(e) for e in self[t].edges()})
 
 	##### Set Graph, Node, and Edge Attributes #####
 	def setGraphAttr(self, t, attrName, gdata):
@@ -140,7 +120,6 @@ class NetTS:
 		'''
 		for t in self.ts:
 			self[t].graph[attrName] = gdata[i]
-
 		return
 
 	def setNodeAttr(self, t, attrName, ndata):
@@ -166,7 +145,7 @@ class NetTS:
 			self[t].edge[i][j][attrName] = edata[(i,j)]
 		return
 
-	##### Modify the Graphs and Return NetTs #####
+	##### Modify the Graphs and Return NetTS #####
 	def modifyGraphs(self, modFunc):
 		''' Returns a NetTs object where each graph has 
 		been run through modFunc. modFunc 
