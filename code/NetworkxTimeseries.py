@@ -22,6 +22,10 @@ class NetTs:
 			len(self.edges) if self.edges is not None else -1
 			)
 
+	def __getitem__(self,key):
+		i = self.ts.index(key)
+		return self.nts[i]
+
 	def __init__(self, ts, nodes=None, edges=None):
 		ts = list(ts) # ts is a timeseries list
 		if nodes is not None: nodes = list(nodes) # nodes is a list of node names
@@ -51,18 +55,18 @@ class NetTs:
 		# set nodes
 		self.nodes = nodes
 		if nodes is not None:
-			for i in range(self.N):
+			for t in self.ts:
 				for n in nodes:
-					self.nts[i].add_node(n)
+					self[t].add_node(n)
 		else:
 			self.nodes = list()
 
 		# set edges
 		self.edges = edges
 		if edges is not None:
-			for i in range(self.N):
+			for t in self.ts:
 				for e in edges:
-					self.nts[i].add_edge(e)
+					self[t].add_edge(e)
 		else:
 			self.edges = list()
 
@@ -71,8 +75,8 @@ class NetTs:
 		''' Adds an attribute to every graph in the network
 		at time t. gdata is a list of attributes to apply.
 		'''
-		for i in range(self.N):
-			self.nts[i].graph[attrName] = gdata[i]
+		for t in self.ts:
+			self[t].graph[attrName] = gdata[i]
 
 		return
 
@@ -82,7 +86,7 @@ class NetTs:
 		in edata, a dictionary of node->vlaue pairs.
 		'''
 		for key,val in ndata:
-			self.nts[t].node[key][attrName] = val
+			self[t].node[key][attrName] = val
 		return
 
 	def setEdgeAttr(self, t, attrName, edata):
@@ -92,11 +96,11 @@ class NetTs:
 		'''
 		for i,j in edata.keys():
 			try:
-				self.nts[t].edge[i][j]
+				self[t].edge[i][j]
 			except:
-				self.nts[t].add_edge(i,j)
+				self[t].add_edge(i,j)
 				self.edges.append((i,j))
-			self.nts[t].edge[i][j][attrName] = edata[(i,j)]
+			self[t].edge[i][j][attrName] = edata[(i,j)]
 		return
 
 	##### Modify the Graphs and Return NetTs #####
@@ -105,14 +109,14 @@ class NetTs:
 		been run through modFunc. modFunc 
 		should take a graph and return a modified graph.
 		'''
-		outNet = NetTs(self.N,self.nodes,self.edges)
-		for i in range(self.N):
-			outNet.nts[i] = modFunc(self.nts[i])
+		outNet = NetTs(self.ts,nodes=self.nodes,edges=self.edges)
+		for t in self.ts:
+			outNet[t] = modFunc(self[t])
 
 		return outNet
 
 	##### Measure Properties of Graphs Over Time #####
-	def measGraph(self, measFunc, addtnlArgs=list()):
+	def measGraph(self, measFunc, addtnlArgs=list(), parallel=False):
 		''' Returns a dataframe of measurements of the 
 		entire graph at each point in time. measFunc should
 		return a dictionary with keys as columns that are
@@ -126,12 +130,33 @@ class NetTs:
 			exit()
 
 		df = pd.DataFrame()
-		for i in range(self.N):
-			result = measFunc(self.nts[i], *addtnlArgs)
+		for t in self.ts:
+			result = measFunc(self[i], *addtnlArgs)
 			tdf = pd.DataFrame([result,],index=[self.ts[i],])
 			df = df.append(tdf)
 
+		attr = list(set([x[1] for x in trymeas.keys()]))
+		mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+		df = pd.DataFrame(index=self.ts,columns=mi)
+		tdata = [(self[t],t,measFunc,addtnlArgs) for t in self.ts]
+
+		if not parallel:
+			meas = map(self.thread_measGraph, tdata)
+		else:
+			with multiprocessing.Pool(processes=4) as p:
+				meas = p.map(self.thread_measNodes, tdata)
+		for t,mdf in meas:
+			df.loc[[t],:] = mdf
+
+
+
 		return df
+
+	def thread_measGraph(self,dat):
+		G,t,measFunc,addtnlArgs = dat
+		meas = measFunc(G, *addtnlArgs)
+		return t,pd.DataFrame([meas,],index=[t,],columns=meas.keys())
+
 
 	def measNodes(self, measFunc, addtnlArgs=list(), parallel=False):
 		''' Returns a multiindex dataframe of measurements for all nodes at each 
@@ -157,7 +182,7 @@ class NetTs:
 		attr = list(set([x[1] for x in trymeas.keys()]))
 		mi = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
 		df = pd.DataFrame(index=self.ts,columns=mi)
-		tdata = [(self.nts[t],t,measFunc,addtnlArgs) for t in self.ts]
+		tdata = [(self[t],t,measFunc,addtnlArgs) for t in self.ts]
 
 		if not parallel:
 			meas = map(self.thread_measNodes, tdata)
