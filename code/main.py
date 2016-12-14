@@ -1,10 +1,13 @@
 ﻿
 import networkx as nx
+import pandas as pd
 import matplotlib.pyplot as plt
 
 import NetworkxTimeseries as nxt
 import random
 import statistics
+
+import time
 
 def graph_measFunc(G):
 	return {
@@ -25,32 +28,47 @@ def nodes_measFunc(G):
 	return meas
 
 if __name__ == "__main__":
-	nodes = ['a','b','c','d','e']
-	#nodes = list(range(100))
+	#nodes = ['a','b','c','d','e']
+	nodes = list(range(50))
+	ts = list(map(lambda x: x*x, range(10,1000, 100)))
+	tdf = pd.DataFrame(index=ts, columns=['Graph','nodewise','nodes'])
 
-	ts = list(range(int(1.0e1)))
-	N = len(ts)
+	for T in ts:
 
-	Gt = nxt.NetTs(ts,nodes=nodes)
+		print('Running for T = %d.' % T)
+		ts = list(range(T))
+		N = len(ts)
+
+		Gt = nxt.NetTs(ts,nodes=nodes)
 	
-	print('Adding Edges For All Years')
-	for t in ts:
-		for i in range(len(nodes)):
-			for j in range(i,len(nodes)):
-				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
+		print('Adding Complete Edges For All t')
+		for t in ts:
+			for i in range(len(nodes)):
+				for j in range(i,len(nodes)):
+					Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
 
-	print('Measuring Graph Properties')
-	df = Gt.measGraph(graph_measFunc)
+		print('Measuring Graph Properties')
+		t0 = time.time()
+		df = Gt.measGraph(graph_measFunc)
+		tf = time.time()
+		tdf.loc[T,'Graph'] = tf-t0
+		print('took %f seconds.' % (tf-t0,))
 
-	print('Measuring Node Properties Per-Node')
-	ddf = Gt.measNodes(pernode_measFunc, pernode=True)
+		print('Measuring Node Properties Per-Node')
+		t0 = time.time()
+		ddf = Gt.measNodes(pernode_measFunc, pernode=True)
+		tf = time.time()
+		tdf.loc[T,'nodewise'] = tf-t0
+		print('took %f seconds.' % (tf-t0,))
 
-	print('Measuring Node Properties At Once')
-	ddf = Gt.measNodes(nodes_measFunc, pernode=False)
+		print('Measuring Node Properties At Once')
+		t0 = time.time()
+		ddf = Gt.measNodes(nodes_measFunc, pernode=False)
+		tf = time.time()
+		tdf.loc[T,'nodes'] = tf-t0
+		print('took %f seconds.' % (tf-t0,))
 
 	print(ddf)
 
-	#plt.plot(df.index,df['meanconstraint'])
+	plt.plot(df.index,df['meanconstraint'])
 	#plt.show()
-
-
