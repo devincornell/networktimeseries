@@ -135,7 +135,6 @@ class NetTS:
 		return outNet
 
 	##### Measure Properties of Graphs Over Time #####
-
 	def measure(self, measFunc, meas_obj='graph', addtnlArgs=list(), parallel=False):
 		''' Returns a multiindex dataframe of measurements for all nodes at each 
 		point in time. measFunc should expect a graph object and return a 

@@ -28,9 +28,6 @@
   <ItemGroup>
     <Compile Include="NetTS.py" />
     <Compile Include="ut_measure.py" />
-    <Compile Include="ut_measGraph.py" />
-    <Compile Include="ut_measEdges.py" />
-    <Compile Include="ut_measNodes.py" />
     <Compile Include="ut_ntsfiles.py" />
     <Compile Include="xgmml.py">
       <SubType>Code</SubType>
