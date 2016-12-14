@@ -1,9 +1,9 @@
-
+﻿
 import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import NetworkxTimeseries as nxt
+import NetworkTimeseries as nxt
 import random
 import statistics
 
@@ -14,10 +14,10 @@ def graph_measFunc(G):
 		'meanconstraint':statistics.mean(nx.get_edge_attributes(G,'weight').values())
 		}
 
-if __name__ == "__main__":
+def measGraph():
 	#nodes = ['a','b','c','d','e']
 	nodes = list(range(50))
-	ts = list(map(lambda x: x*x, range(2,26,2)))
+	ts = list(map(lambda x: x*x, range(2,6,2)))
 	tdf = pd.DataFrame(index=ts, columns=['serial','parallel'])
 
 	for T in ts:

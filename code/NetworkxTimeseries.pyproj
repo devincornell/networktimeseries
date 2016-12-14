@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>16a96522-b4dd-4ea5-98ca-06a6a353ebb4</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ut_ntsfiles.py</StartupFile>
+    <StartupFile>NetworkxTimeseries\__init__.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,16 +22,25 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ut_measGraph.py">
+    <Compile Include="test.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ut_measNodes.py">
+    <Compile Include="NetworkxTimeseries\ut_measGraph.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NetworkxTimeseries.py" />
-    <Compile Include="ut_ntsfiles.py">
+    <Compile Include="NetworkxTimeseries\ut_measNodes.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NetworkxTimeseries\NetTS.py" />
+    <Compile Include="NetworkxTimeseries\ut_ntsfiles.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NetworkxTimeseries\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NetworkxTimeseries\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
