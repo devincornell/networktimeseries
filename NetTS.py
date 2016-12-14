@@ -46,9 +46,9 @@ class NetTS:
 		return
 
 	def save_xgmml(self, filename):
-		gdf = self.measure(xgmml.meas_graph_attr, meas_obj='graph', parallel=True)
-		ndf = self.measure(xgmml.meas_node_attr, meas_obj='nodes', parallel=True)
-		edf = self.measure(xgmml.meas_edge_attr, meas_obj='edges', parallel=True)
+		gdf = self.measure(xgmml.meas_graph_attr, meas_obj='graph', parallel=False)
+		ndf = self.measure(xgmml.meas_node_attr, meas_obj='nodes', parallel=False)
+		edf = self.measure(xgmml.meas_edge_attr, meas_obj='edges', parallel=False)
 		with open(filename) as f:
 			xgmml.build_xgmml_file(f,gdf,ndf,edf)
 
@@ -161,22 +161,21 @@ class NetTS:
 			except TypeError: print('Error in measure(): measFunc keys should follow (node,attr).'); exit()
 
 		if meas_obj == 'graph':
-			cols = trymeas.keys()
+			cols = list(trymeas.keys())
 		elif meas_obj == 'nodes':
-			attr = list(set([x[1] for x in trymeas.keys()]))
-			cols = pd.MultiIndex.from_product([self.nodes,attr],names=['node','attr'])
+			cols = pd.MultiIndex.from_tuples(trymeas.keys(),names=['node','attr'])
 		elif meas_obj == 'edges':
-			attr = list(set([x[2] for x in trymeas.keys()]))
-			cols = pd.MultiIndex.from_product([self.nodes,self.nodes,attr],names=['from','to','attr'])
+			cols = pd.MultiIndex.from_tuples(trymeas.keys(),names=['from','to','attr'])
 
 		df = pd.DataFrame(index=self.ts,columns=cols)
-		tdata = [(self[t],t,measFunc,addtnlArgs,meas_obj) for t in self.ts]
+		tdata = [(self[t],t,measFunc,addtnlArgs,meas_obj,cols) for t in self.ts]
 
 		if not parallel:
 			meas = map(self.thread_measure, tdata)
 		else:
 			with multiprocessing.Pool(processes=4) as p:
 				meas = p.map(self.thread_measure, tdata)
+
 		for t,mdf in meas:
 			df.loc[[t],:] = mdf
 
@@ -187,12 +186,8 @@ class NetTS:
 		network in the timeseries. measFunc is responsible for returning
 		a dictionary with (node,attr) keys.
 		'''
-		G,t,measFunc,addtnlArgs,meas_obj = dat
+		G,t,measFunc,addtnlArgs,meas_obj,cols = dat
 		meas = measFunc(G, *addtnlArgs)
-		if meas_obj == 'graph':
-			cols = meas.keys()
-		else:
-			cols = pd.MultiIndex.from_tuples(meas.keys())
 		
 		return t,pd.DataFrame([meas,],index=[t,],columns=cols)
 
