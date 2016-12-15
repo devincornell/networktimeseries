@@ -1,4 +1,4 @@
-
+﻿
 import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ def ut_xgmmlfiles():
 					Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
 
 		print('Saving File')
-		Gt.save_xgmml('test.xgmml')
+		Gt.save_xgmml('../../Downloads/test.xgmml')
 
 		print('End of Run\r\n')
 
