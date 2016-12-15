@@ -226,19 +226,19 @@ members.
 
 def meas_node_attr(G):
 	meas = dict()
-	attr = G.nodes(data=True)
-	for a,val in attr:
-		attr = nx.get_node_attributes(G,a)
-		meas.update({(n,a):val for n in G.nodes()})
+	attrnames = G.nodes(data=True)[0][1].keys() # attr dict from first node
+	for attrname in attrnames:
+		attr = nx.get_node_attributes(G,attrname)
+		meas.update({(n,attrname):attr[n] for n in G.nodes()})
 
 	return meas
 
 def meas_edge_attr(G):
 	meas = dict()
-	e = G.edges()[0]
-	attr = G.get_edge_data(e[0],e[1])
-	for a,val in attr.items():
-		attr = nx.get_edge_attributes(G,a)
-		meas.update({(e[0],e[1],a):val for e in G.edges()})
+	e0 = G.edges()[0]
+	attrnames = G.get_edge_data(e0[0],e0[1]).keys()
+	for attrname in attrnames:
+		attr = nx.get_edge_attributes(G,attrname)
+		meas.update({(e[0],e[1],attrname):attr[e] for e in G.edges()})
 
 	return meas
