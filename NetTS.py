@@ -210,12 +210,14 @@ class NetTS:
 		''' Measure all node attributes across time.
 		'''
 		ndf = self.time_measure(meas_node_attr, meas_obj='nodes', parallel=parallel)
+		ndf.sort_index(axis='columns',inplace=True)
 		return ndf
 
 	def getEdgeAttr(self,t=None,parallel=False):
 		''' Measure all edge attributes across time.
 		'''
 		edf = self.time_measure(meas_edge_attr, meas_obj='edges', parallel=parallel)
+		edf.sort_index(axis='columns',inplace=True)
 		return edf
 
 
