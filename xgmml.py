@@ -62,7 +62,7 @@ def write_attr(f,attr,changes,tf):
 		val = changes = list(map(lambda x: (x[0],str(x[1])), changes))
 	elif type(changes[0][1]) is int or type(changes[0][1]) is float:
 		typ = 'real'
-		val = changes = list(map(lambda x: (x[0],'{:.2f}'.format(float(x[1]))), changes))
+		val = changes = list(map(lambda x: (x[0],'{:.9f}'.format(float(x[1]))), changes))
 	else:
 		print('There was an error with the attribute type of the network timeseries.')
 		raise
