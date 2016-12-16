@@ -9,28 +9,26 @@ import statistics
 import time
 
 def ut_xgmmlfiles():
-	nodes = ['a','b','c','d','e']
-	#nodes = list(range(50))
-	#ts = list(map(lambda x: x*x, range(2,6,2)))
-	ts = [10,]
-	for T in ts:
-
-		print('Running for T = %d.' % T)
-		ts = list(range(T))
-		N = len(ts)
-
-		Gt = NetTS(ts,nodes=nodes)
+	#nodes = ['a','b','c','d','e']
+	nodes = list(range(50))
 	
-		print('Adding Complete Edges For All t')
-		for t in ts:
-			for i in range(len(nodes)):
-				for j in range(i,len(nodes)):
-					Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
+	#ts = list(map(lambda x: x*x, range(2,6,2)))
+	ts = range(200)
+	N = len(ts)
+	print('Running for %d iterations.' % len(ts))
 
-		print('Saving File')
-		Gt.save_xgmml('../../Downloads/test.xgmml')
+	Gt = NetTS(ts,nodes=nodes)
+	
+	print('Adding Complete Edges For All t')
+	for t in ts:
+		for i in range(len(nodes)):
+			for j in range(i,len(nodes)):
+				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,200),})
 
-		print('End of Run\r\n')
+	print('Saving File')
+	Gt.save_xgmml('../../Downloads/test.xgmml')
+
+	print('End of Run\r\n')
 
 
 if __name__ == '__main__':

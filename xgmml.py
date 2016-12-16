@@ -36,15 +36,7 @@ def build_xgmml_file(f,ndf,edf):
 		for attr in [x[1] for x in filter(lambda x:x[0]==n,ndf.columns)]:
 			changes = get_value_changes(ndf.loc[:,(n,attr)])
 			
-			if type(changes[0][1]) is str: typ = 'string'
-			elif type(changes[0][1]) is int or type(changes[0][1]) is float: typ = 'real'
-			else: raise
-
-			for c in range(len(changes[:-1])):
-				values = {'name':attr,'type':typ,'value':changes[c][1],'start':changes[c][0],'end':changes[c+1][0]}
-			if len(changes) == 1:
-				values = {'name':attr,'type':typ,'value':changes[0][1],'start':t0,'end':tf}
-			f.write(attr_str.format(**values))
+			write_attr(f,attr,changes,tf)
 
 		f.write(node_end_str)
 
@@ -56,22 +48,31 @@ def build_xgmml_file(f,ndf,edf):
 		for attr in [x[2] for x in filter(lambda x:x[:2] == (u,v),edf.columns)]:
 			changes = get_value_changes(edf.loc[:,(u,v,attr)])
 
-			if type(changes[0][1]) is str: typ = 'string'
-			elif type(changes[0][1]) is int or type(changes[0][1]) is float: typ = 'real'
-			else: raise
-
-			for c in range(len(changes[:-1])):
-				values = {'name':attr,'type':typ,'value':changes[c][1],'start':changes[c][0],'end':changes[c+1][0]}
-				f.write(attr_str.format(**values))
-			if len(changes) == 1:
-				values = {'name':attr,'type':typ,'value':changes[0][1],'start':t0,'end':tf}
-				f.write(attr_str.format(**values))
+			write_attr(f,attr,changes,tf)
 
 		f.write(edge_end_str)
 
 	f.write(graph_end_str)
 
 	return
+
+def write_attr(f,attr,changes,tf):
+	if type(changes[0][1]) is str:
+		typ = 'string'
+		val = changes = list(map(lambda x: (x[0],str(x[1])), changes))
+	elif type(changes[0][1]) is int or type(changes[0][1]) is float:
+		typ = 'real'
+		val = changes = list(map(lambda x: (x[0],'{:.2f}'.format(float(x[1]))), changes))
+	else:
+		print('There was an error with the attribute type of the network timeseries.')
+		raise
+
+	for c in range(len(changes[:-1])):
+		values = {'name':attr,'type':typ,'value':changes[c][1],'start':changes[c][0],'end':changes[c+1][0]}
+		f.write(attr_str.format(**values))
+	if len(changes) == 1:
+		values = {'name':attr,'type':typ,'value':changes[0][1],'start':changes[0][0],'end':tf}
+		f.write(attr_str.format(**values))
 
 
 ##### File Output Strings #####
