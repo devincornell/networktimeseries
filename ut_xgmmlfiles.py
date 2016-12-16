@@ -26,7 +26,7 @@ def ut_xgmmlfiles():
 				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,200),})
 
 	print('Saving File')
-	Gt.save_xgmml('../../Downloads/test.xgmml')
+	Gt.save_xgmml('test.xgmml')
 
 	print('End of Run\r\n')
 
