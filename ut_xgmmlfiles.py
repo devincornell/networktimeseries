@@ -9,11 +9,11 @@ import statistics
 import time
 
 def ut_xgmmlfiles():
-	#nodes = ['a','b','c','d','e']
-	nodes = list(range(50))
+	nodes = ['a','b','c','d','e']
+	#nodes = list(range(50))
 	
-	#ts = list(map(lambda x: x*x, range(2,6,2)))
-	ts = range(200)
+	##ts = list(map(lambda x: x*x, range(2,6,2)))
+	ts = range(20)
 	N = len(ts)
 	print('Running for %d iterations.' % len(ts))
 
@@ -22,7 +22,9 @@ def ut_xgmmlfiles():
 	print('Adding Complete Edges For All t')
 	for t in ts:
 		for i in range(len(nodes)):
-			for j in range(i,len(nodes)):
+			items = range(i,len(nodes))
+			samp = random.sample(items,4 if len(items)>=4 else 1)
+			for j in samp:
 				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,200),})
 
 	print('Saving File')

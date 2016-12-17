@@ -1,5 +1,6 @@
 ﻿import networkx as nx
 import pandas as pd
+from numpy import nan
 
 ##### Change Detection Functions #####
 def get_value_changes(ds):
@@ -57,20 +58,22 @@ def build_xgmml_file(f,ndf,edf):
 	return
 
 def write_attr(f,attr,changes,tf):
+
 	if type(changes[0][1]) is str:
 		typ = 'string'
-		val = changes = list(map(lambda x: (x[0],str(x[1])), changes))
+		changes = list(map(lambda x: (x[0],str(x[1])), changes))
 	elif type(changes[0][1]) is int or type(changes[0][1]) is float:
 		typ = 'real'
-		val = changes = list(map(lambda x: (x[0],'{:.9f}'.format(float(x[1]))), changes))
+		changes = list(map(lambda x: (x[0],'{:.9f}'.format(float(x[1]))), changes))
 	else:
 		print('There was an error with the attribute type of the network timeseries.')
 		raise
 
-	for c in range(len(changes[:-1])):
-		values = {'name':attr,'type':typ,'value':changes[c][1],'start':changes[c][0],'end':changes[c+1][0]}
-		f.write(attr_str.format(**values))
-	if len(changes) == 1:
+	for i in range(len(changes[:-1])):
+		if changes[i][1] is not 'nan' and changes[i][1] is not 'None':
+			values = {'name':attr,'type':typ,'value':changes[i][1],'start':changes[i][0],'end':changes[i+1][0]}
+			f.write(attr_str.format(**values))
+	if len(changes) == 1 and changes[0][1] is not 'None' and changes[0][1] is not 'nan':
 		values = {'name':attr,'type':typ,'value':changes[0][1],'start':changes[0][0],'end':tf}
 		f.write(attr_str.format(**values))
 
