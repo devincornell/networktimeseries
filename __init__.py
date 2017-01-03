@@ -11,4 +11,5 @@ if __name__ == '__main__':
 	# run unit tests
 	ut_measure()
 	ut_ntsfiles()
+	ut_getsetedges()
 

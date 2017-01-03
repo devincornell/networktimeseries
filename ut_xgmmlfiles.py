@@ -12,20 +12,18 @@ def ut_xgmmlfiles():
 	nodes = ['a','b','c','d','e']
 	#nodes = list(range(50))
 	
-	##ts = list(map(lambda x: x*x, range(2,6,2)))
-	ts = range(20)
+	#ts = list(map(lambda x: x*x, range(2,6,2)))
+	#ts = list(range())
+	ts = [10,]
 	N = len(ts)
-	print('Running for %d iterations.' % len(ts))
 
 	Gt = NetTS(ts,nodes=nodes)
 	
 	print('Adding Complete Edges For All t')
 	for t in ts:
 		for i in range(len(nodes)):
-			items = range(i,len(nodes))
-			samp = random.sample(items,4 if len(items)>=4 else 1)
-			for j in samp:
-				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,200),})
+			for j in range(i,len(nodes)):
+				Gt.setEdgeAttr(t,'weight',{(nodes[i],nodes[j]):random.uniform(0,10),})
 
 	print('Saving File')
 	Gt.save_xgmml('test.xgmml')

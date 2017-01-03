@@ -145,6 +145,23 @@ class NetTS:
 			self[t].edge[i][j][attrName] = edata[(i,j)]
 		return
 
+	def setEdgeAttrDF(self, df):
+		''' Adds edge data assuming that edata is a pandas
+		dataframe formatted with multiindexed columns
+		(u,v,attr) and indexed rows with time.
+		'''
+		for u in mdf(df.columns,()):
+			for v in mdf(df.columns,(u,)):
+				for attr in mdf(df.columns,(u,v)):
+					for t in df.index:
+						try:
+							self[t].edge[u][v]
+						except KeyError:
+							self[t].add_edge(u,v)
+
+						self[t].edge[u][v][attr] = df.loc[t,(u,v,attr)]
+
+
 	##### Modify the Graphs and Return NetTS #####
 	def modifyGraphs(self, modFunc):
 		''' Returns a NetTs object where each graph has 
@@ -219,6 +236,13 @@ class NetTS:
 		edf = self.time_measure(meas_edge_attr, meas_obj='edges', parallel=parallel)
 		edf.sort_index(axis='columns',inplace=True)
 		return edf
+
+def mdf(mi,match):
+    ''' Returns the list of children of the ordered match
+    set given by match. Specifically for dataframe looping.
+	'''
+    matchfilt = filter(lambda x: x[:len(match)] == match,mi)
+    return set([x[len(match)] for x in matchfilt])
 
 
 ##### Standalone Measurement Functions #####
