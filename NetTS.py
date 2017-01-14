@@ -11,8 +11,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-# local imports
-import xgmml
 
 class NetTS:
 	''' Network Time Series '''
@@ -50,7 +48,7 @@ class NetTS:
 		ndf = self.getNodeAttr()
 		edf = self.getEdgeAttr()
 		with open(filename,'w') as f:
-			xgmml.build_xgmml_file(f,ndf,edf)
+			build_xgmml_file(f,ndf,edf)
 
 		return
 
