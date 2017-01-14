@@ -35,9 +35,6 @@
     <Compile Include="ut_xgmmlfiles.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="xgmml.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
