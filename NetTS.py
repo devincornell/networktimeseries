@@ -329,11 +329,11 @@ def write_attr(f,attr,changes,tf):
 	if type(changes[0][1]) is str:
 		typ = 'string'
 		changes = list(map(lambda x: (x[0],str(x[1])), changes))
-	elif type(changes[0][1]) is int or type(changes[0][1]) is float:
+	elif type(changes[0][1]) is int or type(changes[0][1]) is float or type(changes[0][1]) is np.int64 or type(changes[0][1]) is np.float64:
 		typ = 'real'
 		changes = list(map(lambda x: (x[0],'{:.9f}'.format(float(x[1]))), changes))
 	else:
-		print('There was an error with the attribute type of the network timeseries.')
+		print('There was an error with the attribute type of the network timeseries:', type(changes[0][1]))
 		raise
 
 	for i in range(len(changes[:-1])):
