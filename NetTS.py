@@ -52,7 +52,7 @@ class NetTS:
 
 		return
 
-	def __init__(self, ts, nodes=None, edges=None, type='static_nodes'):
+	def __init__(self, ts, nodes=None, edges=None, type='static_nodes', GraphType=nx.Graph):
 		ts = list(ts) # ts is a timeseries list
 		if nodes is not None: nodes = list(nodes) # nodes is a list of node names
 		if edges is not None: edges = list(edges) # edges is a list of edges
@@ -73,7 +73,7 @@ class NetTS:
 		self.N = len(ts)
 		self.nts = []
 		for i in range(self.N):
-			self.nts.append(nx.Graph(name=ts[i]))
+			self.nts.append(GraphType(name=ts[i]))
 
 		# set nodes
 		self.nodes = nodes
