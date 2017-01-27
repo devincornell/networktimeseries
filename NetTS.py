@@ -209,6 +209,7 @@ class NetTS:
 		for t,mdf in meas:
 			df.loc[[t],:] = mdf
 
+		df = df.sort_index(axis=1)
 		return df
 
 	def thread_time_measure(self, dat):
