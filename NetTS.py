@@ -76,11 +76,9 @@ class NetTS:
 			self.nts.append(GraphType(name=ts[i]))
 
 		# set nodes
-		self.nodes = nodes
 		if nodes is not None:
-			for t in self.ts:
-				for n in nodes:
-					self[t].add_node(n)
+			self.nodes = nodes
+			self.addNodes(nodes)
 		else:
 			self.nodes = list()
 
@@ -93,23 +91,16 @@ class NetTS:
 		else:
 			self.edges = list()
 
-	def update(self):
-		''' This function will add _tag attributes to every node/edge and also
-		keep track of all nodes/edges that appear at all times.'''
-		
-		# update self.nodes, self.edges to contain all possible unique edges
-		nodeset = set()
-		edgeset = set()
-		for t in self.ts:
-			nodeset.union(self[t].nodes())
-			edgeset.union(self[t].edges())
-		self.nodes = list(nodeset)
-		self.edges = list(edgeset)
+	def addNodes(self, nodes, t=None):
+		''' This function will nodes to every graph in the timeseries.'''
+		if t is not None:
+			for t in self.ts:
+				for n in nodes:
+					self[t].add_node(n)
+		else:
+			raise(Exception("This functionality hasn't been implemented yet."))
+		return
 
-		# ensure every node/edge has a _tag attribute
-		for t in self.ts:
-			nx.set_node_attributes(self[t],'_tag',{n:str(n) for n in self[t].nodes()})
-			nx.set_edge_attributes(self[t],'_tag',{e:str(e) for e in self[t].edges()})
 
 	##### Set Graph, Node, and Edge Attributes #####
 	def setGraphAttr(self, t, attrName, gdata):
