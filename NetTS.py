@@ -44,7 +44,6 @@ class NetTS:
 		return
 
 	def save_xgmml(self, filename):
-		self.update()
 		ndf = self.getNodeAttr()
 		edf = self.getEdgeAttr()
 		with open(filename,'w') as f:
@@ -93,12 +92,14 @@ class NetTS:
 
 	def addNodes(self, nodes, t=None):
 		''' This function will nodes to every graph in the timeseries.'''
-		if t is not None:
+		if t is None:
 			for t in self.ts:
 				for n in nodes:
 					self[t].add_node(n)
 		else:
-			raise(Exception("This functionality hasn't been implemented yet."))
+			#raise(Exception("This functionality hasn't been implemented yet."))
+			for n in nodes:
+				self[t].add_node(n)
 		return
 
 
