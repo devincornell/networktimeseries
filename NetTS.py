@@ -31,13 +31,6 @@ class NetTS:
 		i = self.ts.index(key)
 		return self.nts[i]
 
-	@staticmethod
-	def open_nts(ntsfile):
-		data = None
-		with open(ntsfile,'rb') as f:
-			data = pickle.load(f)
-		return data
-
 	def save_nts(self,ntsfile):
 		with open(ntsfile,mode='wb') as f:
 			data = pickle.dump(self,f)
@@ -228,6 +221,9 @@ class NetTS:
 		edf.sort_index(axis='columns',inplace=True)
 		return edf
 
+
+
+
 def mdf(mi,match):
     ''' Returns the list of children of the ordered match
     set given by match. Specifically for dataframe looping.
@@ -235,6 +231,11 @@ def mdf(mi,match):
     matchfilt = filter(lambda x: x[:len(match)] == match,mi)
     return set([x[len(match)] for x in matchfilt])
 
+def from_nts(ntsfilepath):
+	nts = None
+	with open(ntsfilepath,'rb') as f:
+		nts = pickle.load(f)
+	return nts
 
 ##### Standalone Measurement Functions #####
 ''' These functions are used in the class but not explicitly class 
