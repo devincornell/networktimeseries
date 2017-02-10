@@ -93,6 +93,8 @@ class NetTS:
 		else:
 			self.edges = list()
 
+		self.data = {} # for user data (similar to nx.Graph.graph)
+
 	def update(self):
 		''' This function will add _tag attributes to every node/edge and also
 		keep track of all nodes/edges that appear at all times.'''
