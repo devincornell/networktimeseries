@@ -31,20 +31,12 @@ class NetTS:
 		i = self.ts.index(key)
 		return self.nts[i]
 
-	@staticmethod
-	def open_nts(ntsfile):
-		data = None
-		with open(ntsfile,'rb') as f:
-			data = pickle.load(f)
-		return data
-
 	def save_nts(self,ntsfile):
 		with open(ntsfile,mode='wb') as f:
 			data = pickle.dump(self,f)
 		return
 
 	def save_xgmml(self, filename):
-		self.update()
 		ndf = self.getNodeAttr()
 		edf = self.getEdgeAttr()
 		with open(filename,'w') as f:
@@ -76,11 +68,9 @@ class NetTS:
 			self.nts.append(GraphType(name=ts[i]))
 
 		# set nodes
-		self.nodes = nodes
 		if nodes is not None:
-			for t in self.ts:
-				for n in nodes:
-					self[t].add_node(n)
+			self.nodes = nodes
+			self.addNodes(nodes)
 		else:
 			self.nodes = list()
 
@@ -95,23 +85,18 @@ class NetTS:
 
 		self.data = {} # for user data (similar to nx.Graph.graph)
 
-	def update(self):
-		''' This function will add _tag attributes to every node/edge and also
-		keep track of all nodes/edges that appear at all times.'''
-		
-		# update self.nodes, self.edges to contain all possible unique edges
-		nodeset = set()
-		edgeset = set()
-		for t in self.ts:
-			nodeset.union(self[t].nodes())
-			edgeset.union(self[t].edges())
-		self.nodes = list(nodeset)
-		self.edges = list(edgeset)
 
-		# ensure every node/edge has a _tag attribute
-		for t in self.ts:
-			nx.set_node_attributes(self[t],'_tag',{n:str(n) for n in self[t].nodes()})
-			nx.set_edge_attributes(self[t],'_tag',{e:str(e) for e in self[t].edges()})
+	def addNodes(self, nodes, t=None):
+		''' This function will nodes to every graph in the timeseries.'''
+		if t is None:
+			for t in self.ts:
+				for n in nodes:
+					self[t].add_node(n)
+		else:
+			#raise(Exception("This functionality hasn't been implemented yet."))
+			for n in nodes:
+				self[t].add_node(n)
+		return
 
 	##### Set Graph, Node, and Edge Attributes #####
 	def setGraphAttr(self, t, attrName, gdata):
@@ -238,6 +223,9 @@ class NetTS:
 		edf.sort_index(axis='columns',inplace=True)
 		return edf
 
+
+
+
 def mdf(mi,match):
     ''' Returns the list of children of the ordered match
     set given by match. Specifically for dataframe looping.
@@ -245,6 +233,11 @@ def mdf(mi,match):
     matchfilt = filter(lambda x: x[:len(match)] == match,mi)
     return set([x[len(match)] for x in matchfilt])
 
+def from_nts(ntsfilepath):
+	nts = None
+	with open(ntsfilepath,'rb') as f:
+		nts = pickle.load(f)
+	return nts
 
 ##### Standalone Measurement Functions #####
 ''' These functions are used in the class but not explicitly class 
