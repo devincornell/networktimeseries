@@ -130,6 +130,20 @@ class NetTS:
 			self[t].edge[i][j][attrName] = edata[(i,j)]
 		return
 
+	def setNodeAttrDF(self, df):
+		''' Adds node data assuming that edata is a pandas
+		dataframe formatted with multiindexed columns
+		(n,attr) and indexed rows with time.
+		'''
+		for n in mdf(df.columns,()):
+			for attr in mdf(df.columns,(n,)):
+				for t in df.index:
+					try: self[t].node[n]
+					except KeyError: self[t].add_node(n)
+
+					self[t].node[n][attr] = df.loc[t,(n,attr)]
+
+
 	def setEdgeAttrDF(self, df):
 		''' Adds edge data assuming that edata is a pandas
 		dataframe formatted with multiindexed columns
