@@ -1,5 +1,5 @@
 ﻿
-from networkxtimeseries.NetTS import *
+from .NetTS import *
 
 
 
