@@ -199,7 +199,7 @@ class NetTS:
 		elif meas_obj == 'edges':
 			cols = pd.MultiIndex.from_tuples(trymeas.keys(),names=['from','to','attr'])
 
-		df = pd.DataFrame(index=self.ts,columns=cols)
+		df = pd.DataFrame(index=self.ts,columns=cols, dtype=np.float64)
 		tdata = [(self[t],t,measFunc,addtnlArgs,meas_obj,cols) for t in self.ts]
 
 		if not parallel:
