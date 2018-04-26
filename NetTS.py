@@ -10,7 +10,7 @@ from itertools import *
 import networkx as nx
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 class NetTS:
     ''' Network Time Series '''
@@ -46,7 +46,7 @@ class NetTS:
         # set nodes
         if nodes is not None:
             self.nodes = nodes
-            self.addNodes(nodes)
+            self.add_nodes(nodes)
         else:
             self.nodes = list()
 
@@ -60,6 +60,30 @@ class NetTS:
             self.edges = list()
 
         self.data = {} # for user data (similar to nx.Graph.graph)
+        
+    def __str__(self):
+        return '<NetTs:type=%s,numnodes=%d,numedges=%d>' % (
+            self.type,
+            len(self.nodes) if self.nodes is not None else -1,
+            len(self.edges) if self.edges is not None else -1
+            )
+
+    def __getitem__(self,key):
+        i = self.ts.index(key)
+        return self.nts[i]
+
+    def save_nts(self,ntsfile):
+        with open(ntsfile,mode='wb') as f:
+            data = pickle.dump(self,f)
+        return
+
+    def save_xgmml(self, filename):
+        ndf = self.getNodeAttr()
+        edf = self.getEdgeAttr()
+        with open(filename,'w') as f:
+            build_xgmml_file(f,ndf,edf)
+
+        return
         
     def rm_graph(self, key):
         i = self.ts.index(key)
@@ -79,7 +103,21 @@ class NetTS:
                 self[t].add_node(n)
         return
 
-    ##### Set Graph, Node, and Edge Attributes #####
+    ##### Get/Set Graph, Node, and Edge Attributes #####
+    def get_node_attr(self,t=None,parallel=False):
+        ''' Measure all node attributes across time.
+        '''
+        ndf = self.time_measure(meas_node_attr, meas_obj='nodes', parallel=parallel)
+        ndf.sort_index(axis='columns',inplace=True)
+        return ndf
+
+    def get_edge_attr(self,t=None,parallel=False):
+        ''' Measure all edge attributes across time.
+        '''
+        edf = self.time_measure(meas_edge_attr, meas_obj='edges', parallel=parallel)
+        edf.sort_index(axis='columns',inplace=True)
+        return edf
+    
     def set_graph_attr(self, t, attrName, gdata):
         ''' Adds an attribute to every graph in the network
         at time t. gdata is a list of attributes to apply.
@@ -155,13 +193,14 @@ class NetTS:
         return outNet
 
     ##### Measure Properties of Graphs Over Time #####
-    def time_measure(self, measFunc, meas_obj='graph', addtnlArgs=list(), workers=1):
+    def time_measure(self, measFunc, meas_obj='graph', addtnlArgs=list(), workers=1, verb=False):
         ''' Returns a multiindex dataframe of measurements for all nodes at each 
         point in time. measFunc should expect a graph object and return a 
         dictionary with (node,attr) as keys. Output: The index will be a timeseries, 
         columns will be multi-indexed - first by node name then by attribute.
         '''
         # error checking
+        if verb: print('error checking first graph at', meas_obj, 'level.')
         if not (meas_obj == 'graph' or meas_obj == 'nodes' or meas_obj == 'edges'): raise
         trymeas = measFunc(self.nts[0], *addtnlArgs)
         try: dict(trymeas)
@@ -175,17 +214,22 @@ class NetTS:
 
         if meas_obj == 'graph':
             cols = list(trymeas.keys())
+            if verb: print('measuring graphs.')
         elif meas_obj == 'nodes':
             cols = pd.MultiIndex.from_tuples(trymeas.keys(),names=['node','attr'])
+            if verb: print('measuring nodes.')
         elif meas_obj == 'edges':
             cols = pd.MultiIndex.from_tuples(trymeas.keys(),names=['from','to','attr'])
+            if verb: print('measuring edges.')
 
         df = pd.DataFrame(index=self.ts,columns=cols, dtype=np.float64)
         tdata = [(self[t],t,measFunc,addtnlArgs,meas_obj,cols) for t in self.ts]
 
         if workers <= 1:
+            if verb: print('measuring in one thread.')
             meas = map(self._thread_time_measure, tdata)
         else:
+            if verb: print('measuring with', workers, 'cores.')
             with multiprocessing.Pool(processes=workers) as p:
                 meas = p.map(self._thread_time_measure, tdata)
         for t,mdf in meas:
@@ -204,45 +248,13 @@ class NetTS:
         
         return t,pd.DataFrame([meas,],index=[t,],columns=cols)
 
-    def get_node_attr(self,t=None,parallel=False):
-        ''' Measure all node attributes across time.
-        '''
-        ndf = self.time_measure(meas_node_attr, meas_obj='nodes', parallel=parallel)
-        ndf.sort_index(axis='columns',inplace=True)
-        return ndf
-
-    def get_edge_attr(self,t=None,parallel=False):
-        ''' Measure all edge attributes across time.
-        '''
-        edf = self.time_measure(meas_edge_attr, meas_obj='edges', parallel=parallel)
-        edf.sort_index(axis='columns',inplace=True)
-        return edf
-    
-    def __str__(self):
-        return '<NetTs:type=%s,numnodes=%d,numedges=%d>' % (
-            self.type,
-            len(self.nodes) if self.nodes is not None else -1,
-            len(self.edges) if self.edges is not None else -1
-            )
-
-    def __getitem__(self,key):
-        i = self.ts.index(key)
-        return self.nts[i]
-
-    def save_nts(self,ntsfile):
-        with open(ntsfile,mode='wb') as f:
-            data = pickle.dump(self,f)
-        return
-
-    def save_xgmml(self, filename):
-        ndf = self.getNodeAttr()
-        edf = self.getEdgeAttr()
-        with open(filename,'w') as f:
-            build_xgmml_file(f,ndf,edf)
-
-        return
-    
-    #def time_plot(self, t=
+    def time_plot(self, measfunc, addtnlArgs=list(), workers=1, verb=True):
+        meas = self.time_measure(measfunc, addtnlArgs=addtnlArgs, workers=workers, verb=verb)
+        ts = range(len(self.ts))
+        for col in meas.columns:
+            plt.plot(ts, meas[col], label=col)
+        plt.xticks(ts, self.ts)
+        plt.legend()
 
 
 
