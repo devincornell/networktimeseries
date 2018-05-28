@@ -248,8 +248,8 @@ class NetTS:
         
         return t,pd.DataFrame([meas,],index=[t,],columns=cols)
 
-    def time_plot(self, measfunc, addtnlArgs=list(), workers=1, verb=True):
-        meas = self.time_measure(measfunc, addtnlArgs=addtnlArgs, workers=workers, verb=verb)
+    def time_plot(self, *arg, **narg):
+        meas = self.time_measure(*arg, **narg)
         ts = range(len(self.ts))
         for col in meas.columns:
             plt.plot(ts, meas[col], label=col)
